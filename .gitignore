@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+Deep_learning/Transformer/saving_folder/
 
 # C extensions
 *.so
