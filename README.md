@@ -1,16 +1,16 @@
 # TIL
 Till I Learned
 
-**[Library]**
-"""
-Sklearn
-Tensor-Flow
-PyTorch
+**[Library]**  
+'''
+Sklearn  
+Tensor-Flow  
+PyTorch  
 ...ETC
-"""
+'''
 
-**[Machine Learning]**
+**[Machine Learning]**  
 
-**[Exploratory Data Analysis]**
+**[Exploratory Data Analysis]**  
 
-**[Deep Learning]**
+**[Deep Learning]**  
