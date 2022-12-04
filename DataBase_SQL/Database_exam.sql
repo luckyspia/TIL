@@ -1,0 +1,362 @@
+SELECT * FROM player;
+
+-- team_id 가 K07인 선수의 아이디, 이름, 백넘버를 출력하시오
+SELECT PLAYER_ID, PLAYER_NAME, BACK_NO
+FROM PLAYER
+WHERE TEAM_ID = 'K07';
+
+-- 브라질 출신 MF 와 러시아 출신 FW인 선수의 이름, 팀아이디, 포지션, 국가를 출력하시오
+SELECT PLAYER_NAME, TEAM_ID, POSITION, NATION
+FROM PLAYER
+WHERE (POSITION, NATION) IN (('MF', '브라질'), ('FW', '러시아'));
+
+-- 장씨 선수의 정보를 출력하세요
+SELECT *
+FROM PLAYER
+WHERE PLAYER_NAME LIKE '장%';
+
+-- 포지션이 존재하지 않는 선수의 이름과 포지션, 팀 아이디를 출력하세요
+SELECT PLAYER_NAME, POSITION, TEAM_ID
+FROM PLAYER
+WHERE POSITION IS NULL;
+
+-- 선수의 이름, 출생년도, 출생월, 출생일을 출력하시오
+SELECT PLAYER_NAME, YEAR(BIRTH_DATE), MONTH(BIRTH_DATE), DAY(BIRTH_DATE)
+FROM PLAYER;
+
+-- 선수의 이름과 나이를 출력하시오
+SELECT PLAYER_NAME, YEAR(NOW())-YEAR(BIRTH_DATE) AS '나이'
+FROM PLAYER;
+
+-- K08팀의 이름과 포지션, 키를 출력하시오. 단 포지션과 키의 정보가 없을 때는 각각 *****, 0 으로 출력하시오
+SELECT PLAYER_NAME, COALESCE(POSITION, '*****'), COALESCE(HEIGHT, 0)
+FROM PLAYER
+WHERE TEAM_ID = 'K08';
+
+-- 선수의 이름과 영어이름을 출력하시오. 영어이름이 없으면 닉네임을 출력하시오
+SELECT PLAYER_NAME, IFNULL(E_PLAYER_NAME, NICKNAME)
+FROM PLAYER;
+
+-- 동명이인인 선수이름을 출력하시오
+SELECT PLAYER_NAME
+FROM PLAYER
+GROUP BY PLAYER_NAME HAVING COUNT(PLAYER_NAME) >= 2;
+
+-- 평균 키가 180 이상인 포지션을 출력하시오
+SELECT POSITION
+FROM PLAYER
+GROUP BY POSITION HAVING AVG(HEIGHT) >= 180;
+
+-- 팀별로 각각의 생월에 대한 선수의 평균 키를 구하시오
+SELECT * FROM PLAYER;
+
+SELECT TEAM_ID, IFNULL(MONTH(BIRTH_DATE),'날짜 모름'), AVG(HEIGHT)
+FROM PLAYER
+GROUP BY TEAM_ID, MONTH(BIRTH_DATE)
+ORDER BY TEAM_ID;
+
+SELECT TEAM_ID, 
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 1 THEN HEIGHT END),2) M01,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 2 THEN HEIGHT END),2) M02,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 3 THEN HEIGHT END),2) M03,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 4 THEN HEIGHT END),2) M04,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 5 THEN HEIGHT END),2) M05,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 6 THEN HEIGHT END),2) M06,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 7 THEN HEIGHT END),2) M07,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 8 THEN HEIGHT END),2) M08,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 9 THEN HEIGHT END),2) M09,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 10 THEN HEIGHT END),2) M10,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 11 THEN HEIGHT END),2) M11,
+ROUND(AVG(CASE MONTH(BIRTH_DATE) WHEN 12 THEN HEIGHT END),2) M12,
+ROUND(AVG(CASE WHEN MONTH(BIRTH_DATE) IS NULL THEN HEIGHT END),2) 생일모름
+FROM PLAYER
+GROUP BY TEAM_ID;
+
+-- 팀별로 각 포지션에 대한 인원수, 그리고 팀의 전체 인원수를 구하시오. 단, 데이터가 없는 경우는 0으로 표시
+SELECT TEAM_ID, COUNT(*) AS '팀 전체 인원수', 
+SUM(CASE POSITION WHEN 'MF' THEN 1 ELSE 0 END) AS '미드필더 인원수',
+SUM(CASE POSITION WHEN 'FW' THEN 1 ELSE 0 END) '공격수 인원수',
+SUM(CASE POSITION WHEN 'DF' THEN 1 ELSE 0 END) '수비수 인원수',
+SUM(CASE POSITION WHEN 'GK' THEN 1 ELSE 0 END) '골키퍼 인원수',
+SUM(CASE WHEN POSITION IS NULL THEN 1 ELSE 0 END) '포지션 없음'
+FROM PLAYER
+GROUP BY TEAM_ID;
+
+-- 가장 규모가 큰 3개의 경기장의 아이디, 이름, 좌석수를 출력하시오
+SELECT * FROM STADIUM;
+
+SELECT STADIUM_ID, STADIUM_NAME, SEAT_COUNT
+FROM STADIUM
+ORDER BY SEAT_COUNT DESC
+LIMIT 3;
+
+SELECT STADIUM_ID, STADIUM_NAME, SEAT_COUNT
+FROM(SELECT STADIUM_ID, STADIUM_NAME, SEAT_COUNT, ROW_NUMBER() OVER (ORDER BY SEAT_COUNT DESC) '순위'
+FROM STADIUM) AS TEMP
+WHERE TEMP.순위 < 4;
+
+-- K02 혹은 K07 팀 선수들을 검색 (UNION 사용)
+SELECT * FROM PLAYER WHERE TEAM_ID = 'K02'
+UNION
+SELECT * FROM PLAYER WHERE TEAM_ID = 'K07';
+
+-- 소속이 K02 팀이면서 포지션이 GK인 선수들을 검색
+SELECT *
+FROM PLAYER
+WHERE TEAM_ID = 'K02' AND POSITION = 'GK';
+
+-- K02팀이면서 포지션이 MF가 아닌 선수들을 검색
+SELECT *
+FROM PLAYER
+WHERE TEAM_ID = 'K02' AND POSITION <> 'MF';
+
+-- 선수들의 이름, 백넘버, 소속 팀명 및 팀 연고지를 검색
+SELECT PLAYER_NAME, BACK_NO, TEAM_NAME, REGION_NAME
+FROM PLAYER, TEAM
+WHERE PLAYER.TEAM_ID = TEAM.TEAM_ID; 
+
+-- 포지션이 'GK'인 선수들의 이름, 백넘버, 소속팀명 및 팀 연고지를 검색, 단 백넘버의 오름차순으로 출력
+SELECT PLAYER_NAME, BACK_NO, TEAM_NAME, REGION_NAME
+FROM PLAYER, TEAM
+WHERE PLAYER.TEAM_ID = TEAM.TEAM_ID AND PLAYER.POSITION = 'GK'
+ORDER BY PLAYER.BACK_NO;
+
+-- 선수 이름, 소속 팀, 그 팀의 전용구장 정보를 같이 출력
+SELECT PLAYER_NAME, TEAM_NAME, STADIUM_NAME, SEAT_COUNT, STADIUM.ADDRESS, STADIUM.DDD, STADIUM.TEL
+FROM PLAYER, TEAM, STADIUM
+WHERE PLAYER.TEAM_ID = TEAM.TEAM_ID AND TEAM.STADIUM_ID = STADIUM.STADIUM_ID;
+
+-- GK 포지션의 선수마다 팀 연고지명, 팀명, 구장명을 출력
+SELECT REGION_NAME, TEAM_NAME, STADIUM_NAME
+FROM PLAYER, TEAM, STADIUM
+WHERE PLAYER.TEAM_ID = TEAM.TEAM_ID AND TEAM.STADIUM_ID = STADIUM.STADIUM_ID AND PLAYER.POSITION = 'GK';
+
+SELECT REGION_NAME, TEAM_NAME, STADIUM_NAME
+FROM PLAYER P JOIN TEAM T ON P.TEAM_ID = T.TEAM_ID JOIN STADIUM S ON T.STADIUM_ID = S.STADIUM_ID
+WHERE P.POSITION = 'GK';
+
+-- 홈팀이 3점 이상 차이로 승리한 경기의 경기장 이름, 경기 일정, 홈팀 이름과 원정팀 이름 정보를 출력
+SELECT STADIUM_NAME, SCHE_DATE, HT.TEAM_NAME, AT.TEAM_NAME
+FROM SCHEDULE SC JOIN STADIUM ST ON SC.STADIUM_ID = ST.STADIUM_ID
+     JOIN TEAM HT ON SC.HOMETEAM_ID = HT.TEAM_ID
+     JOIN TEAM AT ON SC.AWAYTEAM_ID = AT.TEAM_ID
+WHERE (HOME_SCORE-AWAY_SCORE) >= 3;
+
+
+-- 스케쥴 테이블에서 경기장 이름, 홈팀 이름, 어웨팀 이름을 출력
+SELECT SC.STADIUM_ID, SC.SCHE_DATE, GUBUN, STADIUM_NAME, HT.TEAM_NAME, AT.TEAM_NAME, HOME_SCORE, AWAY_SCORE
+FROM SCHEDULE SC JOIN STADIUM ST ON SC.STADIUM_ID = ST.STADIUM_ID
+     JOIN TEAM HT ON SC.HOMETEAM_ID = HT.TEAM_ID
+     JOIN TEAM AT ON SC.AWAYTEAM_ID = AT.TEAM_ID;
+
+-- 날짜별 경기수를 출력하시오, 단 누락된 날짜가 없게 하시오
+SELECT SCHE_DATE, COALESCE(COUNT(*), 0)
+FROM SCHEDULE
+GROUP BY SCHE_DATE;
+
+-- 선수들의 평균 키보다 작은 선수들의 이름, 포지션, 백넘버를 출력
+SELECT PLAYER_NAME, POSITION, BACK_NO
+FROM PLAYER
+WHERE HEIGHT < (SELECT AVG(HEIGHT) FROM PLAYER);
+
+-- 정현수 선수의 소속팀의 연고지명, 팀명, 영문팀명을 출력
+SELECT REGION_NAME, TEAM_NAME, E_TEAM_NAME
+FROM PLAYER P JOIN TEAM T ON P.TEAM_ID = T.TEAM_ID
+WHERE P.PLAYER_NAME = '정현수';
+
+SELECT REGION_NAME, TEAM_NAME, E_TEAM_NAME
+FROM TEAM
+WHERE TEAM_ID = ANY ( SELECT TEAM_ID FROM PLAYER WHERE PLAYER_NAME = '정현수');  -- 비연관 서브쿼리
+
+-- 각 팀에서 제일 키가 작은 선수들의 팀아이디, 선수명, 포지션, 백넘버, 키를 출력
+SELECT TEAM_ID, PLAYER_NAME, POSITION, BACK_NO, HEIGHT
+FROM PLAYER
+WHERE (TEAM_ID, HEIGHT) IN (SELECT TEAM_ID,MIN(HEIGHT) FROM PLAYER GROUP BY TEAM_ID)
+ORDER BY TEAM_ID; -- 비연관 서브쿼리
+
+SELECT TEAM_ID, PLAYER_NAME, POSITION, BACK_NO, HEIGHT
+FROM PLAYER X
+WHERE HEIGHT = (SELECT MIN(HEIGHT) FROM PLAYER Y WHERE X.TEAM_ID = Y.TEAM_ID)
+ORDER BY TEAM_ID; 
+
+-- 포지션이 GK인 선수들을 검색 (연관 서브쿼리 사용)
+SELECT *
+FROM PLAYER X
+WHERE EXISTS ( SELECT * FROM PLAYER Y WHERE X.PLAYER_ID = Y.PLAYER_ID AND Y.POSITION = 'GK');
+
+-- 브라질 혹은 러시아 출신 선수가 있는 팀을 검색 (연관 서브쿼리 사용), 팀 아이디, 팀명 출력
+SELECT TEAM_ID, TEAM_NAME
+FROM TEAM
+WHERE EXISTS ( SELECT * FROM PLAYER WHERE TEAM.TEAM_ID = PLAYER.TEAM_ID AND NATION IN ('브라질','러시아'));
+
+-- 20120501부터 20120502 사이에 경기가 열렸던 경기장을 조회 (연관 서브쿼리 사용), 경기장 아이디, 경기장명을 출력
+SELECT STADIUM_ID, STADIUM_NAME
+FROM STADIUM
+WHERE EXISTS (SELECT * FROM SCHEDULE WHERE STADIUM.STADIUM_ID = SCHEDULE.STADIUM_ID AND SCHE_DATE BETWEEN 20120501 AND 20120502);
+
+-- 각 팀에서 제일 키가 큰 선수들의 팀 아이디, 이름, 키를 출력
+SELECT TEAM_ID, PLAYER_NAME, HEIGHT
+FROM PLAYER
+WHERE (TEAM_ID, HEIGHT) IN (SELECT TEAM_ID, MAX(HEIGHT) FROM PLAYER GROUP BY TEAM_ID)
+ORDER BY TEAM_ID;
+
+SELECT TEAM_ID, PLAYER_NAME, HEIGHT
+FROM PLAYER X
+WHERE HEIGHT = (
+SELECT MAX(HEIGHT)
+FROM PLAYER Y WHERE X.TEAM_ID= Y.TEAM_ID)
+ORDER BY TEAM_ID;
+
+-- 소속 팀의 평균 키보다 작은 선수들의 팀 아이디, 이름, 포지션, 백넘버, 키를 출력
+SELECT TEAM_ID, PLAYER_NAME, POSITION, BACK_NO, HEIGHT
+FROM PLAYER X
+WHERE X.HEIGHT < (SELECT AVG(Y.HEIGHT) FROM PLAYER Y WHERE X.TEAM_ID = Y.TEAM_ID)
+ORDER BY TEAM_ID;
+
+-- 팀 아이디, 선수명, 키 , 소속 팀의 평균키를 출력
+SELECT TEAM_ID, PLAYER_NAME, HEIGHT, (SELECT AVG(HEIGHT) FROM PLAYER Y WHERE X.TEAM_ID = Y.TEAM_ID) 
+FROM PLAYER X
+ORDER BY X.TEAM_ID;
+
+-- 팀 아이디, 팀명, 팀 인원수를 출력
+SELECT TEAM_ID, TEAM_NAME, (SELECT COUNT(*) FROM PLAYER Y WHERE X.TEAM_ID = Y.TEAM_ID)
+FROM TEAM X
+ORDER BY X.TEAM_ID;
+
+-- 팀 아이디, 팀명, 각 팀의 마지막 경기가 진행된 날짜를 출력
+SELECT TEAM_ID, TEAM_NAME, 
+       (SELECT MAX(SCHE_DATE) FROM SCHEDULE WHERE SCHEDULE.HOMETEAM_ID = TEAM.TEAM_ID OR SCHEDULE.AWAYTEAM_ID = TEAM.TEAM_ID)
+FROM TEAM;
+
+-- 포지션이 MF 인 선수들의 소속팀명 및 선수이름과 백넘버를 출력
+SELECT TEAM_NAME, PLAYER_NAME, BACK_NO
+FROM (SELECT TEAM_ID, PLAYER_NAME, BACK_NO
+      FROM PLAYER
+      WHERE POSITION = 'MF') P, TEAM T
+WHERE P.TEAM_ID = T.TEAM_ID
+ORDER BY PLAYER_NAME; -- 인라인 뷰는 조인과 형식이 비슷하지만, FROM절에서 조건에 필요한 테이블만 호출
+
+-- 키가 제일 큰 5명의 선수들의 이름, 포지션, 백넘버를 출력
+SELECT PLAYER_NAME, POSITION, BACK_NO
+FROM PLAYER
+ORDER BY HEIGHT DESC
+LIMIT 5;
+
+SELECT PLAYER_NAME, POSITION, BACK_NO, HEIGHT
+FROM (SELECT PLAYER_NAME, POSITION, BACK_NO, HEIGHT
+	  FROM PLAYER
+	  WHERE HEIGHT IS NOT NULL
+      ORDER BY HEIGHT DESC) AS TEMP
+LIMIT 5;
+
+-- K02 팀의 평균키보다 평균키가 작은 팀의 이름과 해당 팀의 평균키를 출력
+SELECT TEAM_NAME, AVG(HEIGHT)
+FROM TEAM T, PLAYER P
+WHERE T.TEAM_ID = P.TEAM_ID
+GROUP BY T.TEAM_ID, T.TEAM_NAME
+HAVING AVG(P.HEIGHT) < (SELECT AVG(HEIGHT) FROM PLAYER WHERE TEAM_ID = 'K02') ;
+
+-- 각 팀의 최종 경기일을 검색하시오. 단, 경기가 없던 팀은 제외
+SELECT TEAM_ID, TEAM_NAME, FINAL
+FROM (SELECT TEAM_ID, TEAM_NAME, 
+       (SELECT MAX(SCHE_DATE) FROM SCHEDULE 
+       WHERE SCHEDULE.HOMETEAM_ID = TEAM.TEAM_ID OR SCHEDULE.AWAYTEAM_ID = TEAM.TEAM_ID) AS FINAL
+      FROM TEAM) AS TEMP
+WHERE FINAL IS NOT NULL;
+
+-- 각 팀에 대해 최고 점수차로 이긴 게임의 상대팀 아이디, 게임이 열린 날짜와 경기장 아이디, 점수차 및 경기점수를 검색하시오. 단, 최고 점수차로 이긴 게임이 2개 이상이면 모두 나열하시오 또한 경기 점수는 '이긴팀 점수: 진팀 점수'로 표현
+
+WITH temp AS
+(SELECT t.team_id, sc.sche_date,
+CASE t.team_id
+WHEN sc.hometeam_id THEN (sc.home_score - sc.away_score)
+WHEN sc.awayteam_id THEN (sc.away_score - sc.home_score)
+END AS 점수차,
+CASE
+WHEN sc.home_score > sc.away_score THEN concat(sc.home_score, ':', sc.away_score)
+WHEN sc.home_score < sc.away_score THEN concat(sc.away_score, ':', sc.home_score)
+END AS 점수,
+CASE t.team_id
+WHEN sc.hometeam_id THEN sc.awayteam_id
+WHEN sc.awayteam_id THEN sc.hometeam_id
+END AS 상대팀,
+sc.stadium_id
+FROM team t, SCHEDULE sc
+WHERE t.team_id IN (sc.hometeam_id, sc.awayteam_id) AND sc.gubun = 'Y' ORDER BY t.team_id)
+SELECT team_id, 상대팀, 점수차, 점수, sche_date, stadium_id
+FROM temp
+WHERE (team_id, 점수차) IN
+      (SELECT team_id, max(점수차) FROM temp
+       GROUP BY team_id
+       HAVING max(점수차) > 0);
+
+
+-- GK가 4인 이상 있는 팀의 팀명과  GK 선수의 인원수, 팀 전체 선수의 인원수를 검색하시오
+SELECT T.TEAM_ID, TEAM_NAME, COUNT(*) AS 'GK 인원수', (SELECT COUNT(*) FROM PLAYER WHERE PLAYER.TEAM_ID = T.TEAM_ID)
+FROM TEAM T, (SELECT * FROM PLAYER WHERE POSITION='GK') P
+WHERE T.TEAM_ID = P.TEAM_ID
+GROUP BY P.TEAM_ID
+HAVING COUNT(*) >= 4
+ORDER BY T.TEAM_ID;
+
+-- 홈에서 진 적이 없는 팀을 검색하시오. 단, 홈 경기가 없던 팀은 제외하시오
+SELECT TEAM_ID
+FROM (SELECT TEAM_ID, SUM(CASE WHEN TEAM_ID = HOMETEAM_ID AND HOME_SCORE < AWAY_SCORE THEN 1 ELSE 0 END) 'LOSE'
+      FROM TEAM T, SCHEDULE SC
+      WHERE T.TEAM_ID = SC.HOMETEAM_ID OR T.TEAM_ID = SC.AWAYTEAM_ID
+            AND HOMETEAM_ID = TEAM_ID
+      GROUP BY T.TEAM_ID) AS TEMP
+WHERE TEMP.LOSE=0;
+
+-- 각 팀의 승리 게임수, 무승부 게임수, 패배 게임수, 그리고 팀의 전체 게임수를 검색하시오, 점수가 없는 경기는 실제 진행되지 않았으므로 게임수에서 제외하시오
+SELECT TEAM_ID, COUNT(*),
+       SUM(CASE WHEN HOME_SCORE = AWAY_SCORE THEN 1 ELSE 0 END) AS '무승부 게임수',
+       SUM(CASE WHEN HOMETEAM_ID = TEAM_ID AND HOME_SCORE > AWAY_SCORE THEN 1 ELSE 0 END) +
+       SUM(CASE WHEN AWAYTEAM_ID = TEAM_ID AND AWAY_SCORE > HOME_SCORE THEN 1 ELSE 0 END) '승리 게임 수',
+       SUM(CASE WHEN HOMETEAM_ID = TEAM_ID AND HOME_SCORE < AWAY_SCORE THEN 1 ELSE 0 END) +
+       SUM(CASE WHEN AWAYTEAM_ID = TEAM_ID AND AWAY_SCORE < HOME_SCORE THEN 1 ELSE 0 END) '패배 게임 수'
+FROM TEAM T, SCHEDULE SC
+WHERE (T.TEAM_ID = SC.HOMETEAM_ID OR T.TEAM_ID = SC.AWAYTEAM_ID)
+      AND HOME_SCORE IS NOT NULL 
+GROUP BY T.TEAM_ID
+ORDER BY T.TEAM_ID;
+
+with win as
+(
+select t.team_id
+from team t, schedule sc
+where t.team_id in (sc.hometeam_id, sc.awayteam_id) and (
+(t.team_id = sc.hometeam_id and sc.home_score > sc.away_score) or
+(t.team_id = sc.awayteam_id and sc.home_score < sc.away_score)
+) and sc.gubun = 'Y'
+),
+lose as
+(
+select t.team_id
+from team t, schedule sc
+where t.team_id in (sc.hometeam_id, sc.awayteam_id) and (
+(t.team_id = sc.hometeam_id and sc.home_score < sc.away_score) or
+(t.team_id = sc.awayteam_id and sc.home_score > sc.away_score)
+) and sc.gubun = 'Y'
+),
+draw as
+(
+select t.team_id
+from team t, schedule sc
+where t.team_id in (sc.hometeam_id, sc.awayteam_id) and (
+sc.home_score = sc.away_score
+) and sc.gubun = 'Y'
+),
+total_match as
+(
+select t.team_id
+from team t, schedule sc
+where t.team_id in (sc.hometeam_id, sc.awayteam_id) and sc.gubun = 'Y'
+)
+select t.team_id,
+(select count(*) from win where team_id = t.team_id) as win,
+(select count(*) from lose where team_id = t.team_id) as lose,
+(select count(*) from draw where team_id = t.team_id) as draw,
+(select count(*) from total_match where team_id = t.team_id) as 'total match'
+from team t
+order by t.team_id;
