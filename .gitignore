@@ -6,6 +6,7 @@ Deep_learning/Transformer/saving_folder/
 Exploratory_Data_Analysis/data/xView_201904_01_15.csv
 Machine_Learning/data/creditcard.csv
 Text_Analysis/nsmc.krs/
+*.npy
 
 # C extensions
 *.so
